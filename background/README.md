@@ -6,4 +6,4 @@ If a seed is not set, the background image will be randomized upon every reload!
 
 ![](https://raw.githubusercontent.com/CiaccoDavide/Procgen/master/background/img/example.png)
 
-[Live demo](https://ciaccodavi.de/procedural/background) 
+[Live demo](https://ciaccodavi.de/procgen/background) 
