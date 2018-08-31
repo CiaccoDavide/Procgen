@@ -22,27 +22,28 @@
     $col_min = 90;// min color value
     $col_max = 240;// max color value
 
-    // generate background color
-    $col_back_R = mt_rand($col_min, $col_max);
-    $col_back_G = mt_rand($col_min, $col_max);
-    $col_back_B = mt_rand($col_min, $col_max);
-    $color_background = imagecolorallocate($img, $col_back_R, $col_back_G, $col_back_B);
-    // generate foreground color
-    $col_fore_R = mt_rand($col_min, $col_max);
-    $col_fore_G = mt_rand($col_min, $col_max);
-    $col_fore_B = mt_rand($col_min, $col_max);
-    $color_foreground[0] = imagecolorallocate($img, $col_fore_R, $col_fore_G, $col_fore_B);
-    $foreground_colors = mt_rand(1, 2);
-    if($foreground_colors == 2){
-        // generate third color
-        $col_third_R = mt_rand($col_min, $col_max);
-        $col_third_G = mt_rand($col_min, $col_max);
-        $col_third_B = mt_rand($col_min, $col_max);
-        $color_foreground[1] = imagecolorallocate($img, $col_third_R, $col_third_G, $col_third_B);
-    }
+    // color palette generation
+    $colors = [];
+    // starting colors
+    $num_of_generators = mt_rand(2, 4);
+    // final palette size
+    $num_of_colors = mt_rand(3, 6);
+    while ($num_of_colors <= $num_of_generators) $num_of_colors = mt_rand(3, 6);
+
+    $palette = imagecreatetruecolor($num_of_generators, 1);
+    // generate starting colors
+    for ($c=0; $c < $num_of_generators; $c++)
+        imagesetpixel( $palette, $c, 0, imagecolorallocate($palette, mt_rand($col_min, $col_max) / ($c/2 + 1), mt_rand($col_min, $col_max) / ($c/2 + 1), mt_rand($col_min, $col_max) / ($c/2 + 1)) );
+
+    $palette = imagescale($palette, 100 * $num_of_generators, 1,  IMG_BILINEAR_FIXED);
+    $palette = imagescale($palette, $num_of_colors, 1, IMG_BILINEAR_FIXED);
+
+    for ($c=0; $c < $num_of_colors; $c++)
+        $colors[] = imagecolorat($palette, $c, 0);
+
 
     // backround color
-    imagefilledrectangle($img, 0, 0, $width, $height, $color_background);
+    imagefilledrectangle($img, 0, 0, $width, $height, $colors[0]);
 
 
     // pattern matrix, max: 10*10 (x*y)
@@ -82,7 +83,7 @@
                 $pattern_matrix[$px][$py] = $pattern_matrix[$mat_w - $px][$py];
             }
 
-            $rand_col =  mt_rand(0, $foreground_colors);
+            $rand_col =  mt_rand(0, $num_of_colors-1);
             if( !$pixel_mirrored && $rand_col > 0)
             {
                 $pattern_matrix[$px][$py] = $rand_col;
@@ -96,7 +97,7 @@
         for( $y = 0; $y < $height; $y++ )
         {
             $pattern_value = $pattern_matrix[($x/$mod_size)%$mat_w][($y/$mod_size)%$mat_h];
-            if($pattern_value > 0) imagesetpixel( $img, $x, $y, $color_foreground[$pattern_value - 1]);
+            if($pattern_value > 0) imagesetpixel( $img, $x, $y, $colors[$pattern_value]);
         }
     }
 
@@ -109,3 +110,4 @@
     imagepng($img);
     // destroy images
     imagedestroy($img);
+    imagedestroy($palette);
