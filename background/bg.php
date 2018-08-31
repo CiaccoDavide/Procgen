@@ -38,58 +38,31 @@
     $palette = imagescale($palette, 100 * $num_of_generators, 1,  IMG_BILINEAR_FIXED);
     $palette = imagescale($palette, $num_of_colors, 1, IMG_BILINEAR_FIXED);
 
-    for ($c=0; $c < $num_of_colors; $c++)
-        $colors[] = imagecolorat($palette, $c, 0);
+    $rnd = 0;
+    if($num_of_colors == 5 && mt_rand(0,1))
+    {
+        $num_of_colors = 2;
+        $colors[] = imagecolorat($palette, 1, 0);
+        $colors[] = imagecolorat($palette, 3, 0);
+    }else{
 
+    for ($c=0; $c < $num_of_colors; $c++)
+        $colors[] = imagecolorat($palette, $c + $rnd, 0);
+}
 
     // backround color
     imagefilledrectangle($img, 0, 0, $width, $height, $colors[0]);
 
 
     // pattern matrix, max: 10*10 (x*y)
-    $pattern_matrix = array(
-        0 => array(0,0,0,0,0,0,0,0,0,0),
-        1 => array(0,0,0,0,0,0,0,0,0,0),
-        2 => array(0,0,0,0,0,0,0,0,0,0),
-        3 => array(0,0,0,0,0,0,0,0,0,0),
-        4 => array(0,0,0,0,0,0,0,0,0,0),
-        5 => array(0,0,0,0,0,0,0,0,0,0),
-        6 => array(0,0,0,0,0,0,0,0,0,0),
-        7 => array(0,0,0,0,0,0,0,0,0,0),
-        8 => array(0,0,0,0,0,0,0,0,0,0),
-        9 => array(0,0,0,0,0,0,0,0,0,0),
-    );
+    
 
     $mirror_horizontal = mt_rand(0, 1);
     $mirror_vertical = mt_rand(0, 1);
     $pixel_mirrored = false;
 
     // generate the pattern matrix
-    for( $px = 0; $px < $mat_w; $px++ )
-    {
-        for( $py = 0; $py < $mat_h; $py++ )
-        {
-            $pixel_mirrored = false;
-
-            if( $mirror_horizontal && $py > $mat_h / 2 )
-            {
-                $pixel_mirrored = true;
-                $pattern_matrix[$px][$py] = $pattern_matrix[$px][$mat_h - $py];
-            }
-
-            if( $mirror_vertical && $px > $mat_w / 2 )
-            {
-                $pixel_mirrored = true;
-                $pattern_matrix[$px][$py] = $pattern_matrix[$mat_w - $px][$py];
-            }
-
-            $rand_col =  mt_rand(0, $num_of_colors-1);
-            if( !$pixel_mirrored && $rand_col > 0)
-            {
-                $pattern_matrix[$px][$py] = $rand_col;
-            }
-        }
-    }
+    $pattern_matrix = GeneratePattern($mat_w, $mat_h, $mirror_horizontal, $mirror_vertical, $num_of_colors);
 
     // apply mask
     for( $x = 0; $x < $width; $x++ )
@@ -111,3 +84,52 @@
     // destroy images
     imagedestroy($img);
     imagedestroy($palette);
+
+
+function GeneratePattern($mat_w, $mat_h, $mirror_horizontal, $mirror_vertical, $num_of_colors)
+{
+    $pattern_matrix = array(
+        0 => array(0,0,0,0,0,0,0,0,0,0),
+        1 => array(0,0,0,0,0,0,0,0,0,0),
+        2 => array(0,0,0,0,0,0,0,0,0,0),
+        3 => array(0,0,0,0,0,0,0,0,0,0),
+        4 => array(0,0,0,0,0,0,0,0,0,0),
+        5 => array(0,0,0,0,0,0,0,0,0,0),
+        6 => array(0,0,0,0,0,0,0,0,0,0),
+        7 => array(0,0,0,0,0,0,0,0,0,0),
+        8 => array(0,0,0,0,0,0,0,0,0,0),
+        9 => array(0,0,0,0,0,0,0,0,0,0),
+    );
+
+    $acceptable = false;
+
+    while(!$acceptable){
+        for( $px = 0; $px < $mat_w; $px++ )
+        {
+            for( $py = 0; $py < $mat_h; $py++ )
+            {
+                $pixel_mirrored = false;
+
+                if( $mirror_horizontal && $py > $mat_h / 2 )
+                {
+                    $pixel_mirrored = true;
+                    $pattern_matrix[$px][$py] = $pattern_matrix[$px][$mat_h - $py];
+                }
+
+                if( $mirror_vertical && $px > $mat_w / 2 )
+                {
+                    $pixel_mirrored = true;
+                    $pattern_matrix[$px][$py] = $pattern_matrix[$mat_w - $px][$py];
+                }
+
+                $rand_col =  mt_rand(0, $num_of_colors-1);
+                if( !$pixel_mirrored && $rand_col > 0)
+                {
+                    $pattern_matrix[$px][$py] = $rand_col;
+                    $acceptable = true;
+                }
+            }
+        }
+    }
+    return $pattern_matrix;
+}
